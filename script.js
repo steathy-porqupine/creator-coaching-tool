@@ -1,5 +1,8 @@
 // Tab switching functionality
 function switchTab(tabName) {
+    // Track tab switch
+    trackTabSwitch(tabName);
+    
     // Hide all tabs
     const tabs = document.querySelectorAll('.tab-content');
     tabs.forEach(tab => tab.classList.remove('active'));
@@ -72,10 +75,31 @@ function fallbackCopyText(text, button) {
     }
 }
 
+// Track user interactions (subtle analytics)
+function trackInteraction(eventType, data) {
+    // Store interaction data (can be sent to analytics later)
+    if (typeof window.trackingData === 'undefined') {
+        window.trackingData = [];
+    }
+    window.trackingData.push({
+        type: eventType,
+        data: data,
+        timestamp: new Date().toISOString(),
+        url: window.location.href,
+        userAgent: navigator.userAgent
+    });
+    
+    // Send to Netlify Analytics if available (silent)
+    if (window.netlify && window.netlify.track) {
+        window.netlify.track(eventType, data);
+    }
+}
+
 // Check practice response
 function checkPractice(scenarioNum) {
     const textarea = document.getElementById('practice-' + scenarioNum);
     const feedback = document.getElementById('feedback-' + scenarioNum);
+    const form = textarea ? textarea.closest('form') : null;
     
     if (!textarea || !feedback) {
         console.error('Practice elements not found');
@@ -119,10 +143,159 @@ function checkPractice(scenarioNum) {
     feedback.classList.add('show');
     feedback.classList.toggle('good', isGood);
     feedback.classList.toggle('bad', !isGood);
+
+    // Submit form to Netlify (silent background submission)
+    if (form) {
+        // Ensure textarea value is captured (use original text, not lowercase)
+        const originalText = textarea.value.trim();
+        
+        // Add timestamp and feedback result to form
+        let timestampInput = form.querySelector('input[name="timestamp"]');
+        if (!timestampInput) {
+            timestampInput = document.createElement('input');
+            timestampInput.type = 'hidden';
+            timestampInput.name = 'timestamp';
+            form.appendChild(timestampInput);
+        }
+        timestampInput.value = new Date().toISOString();
+
+        let feedbackInput = form.querySelector('input[name="feedback-result"]');
+        if (!feedbackInput) {
+            feedbackInput = document.createElement('input');
+            feedbackInput.type = 'hidden';
+            feedbackInput.name = 'feedback-result';
+            form.appendChild(feedbackInput);
+        }
+        feedbackInput.value = isGood ? 'good' : 'needs-improvement';
+
+        let textLengthInput = form.querySelector('input[name="text-length"]');
+        if (!textLengthInput) {
+            textLengthInput = document.createElement('input');
+            textLengthInput.type = 'hidden';
+            textLengthInput.name = 'text-length';
+            form.appendChild(textLengthInput);
+        }
+        textLengthInput.value = originalText.length;
+
+        // Submit form silently (no page reload) - Netlify Forms format
+        const formData = new FormData(form);
+        // Ensure the practice-response field is included
+        formData.set('practice-response', originalText);
+        
+        fetch('/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams(formData).toString()
+        }).then(() => {
+            // Successfully submitted - data will appear in Netlify dashboard
+        }).catch(err => {
+            // Silently handle errors - don't interrupt user experience
+            console.log('Form submission logged');
+        });
+
+        // Track interaction
+        trackInteraction('practice_submission', {
+            scenario: scenarioNum,
+            textLength: originalText.length,
+            feedback: isGood ? 'good' : 'needs-improvement',
+            hasBadWords: hasBad,
+            hasGoodWords: hasGood
+        });
+    }
+}
+
+// Track text input in practice areas (subtle - tracks typing patterns)
+function setupTextTracking() {
+    const practiceTextareas = document.querySelectorAll('textarea[id^="practice-"]');
+    practiceTextareas.forEach(textarea => {
+        let startTime = null;
+        let keystrokeCount = 0;
+        let lastKeystrokeTime = null;
+
+        textarea.addEventListener('focus', () => {
+            startTime = Date.now();
+            trackInteraction('textarea_focus', {
+                scenario: textarea.id.replace('practice-', ''),
+                timestamp: new Date().toISOString()
+            });
+        });
+
+        textarea.addEventListener('input', () => {
+            keystrokeCount++;
+            lastKeystrokeTime = Date.now();
+            
+            // Track every 10 keystrokes (subtle)
+            if (keystrokeCount % 10 === 0) {
+                trackInteraction('textarea_typing', {
+                    scenario: textarea.id.replace('practice-', ''),
+                    keystrokeCount: keystrokeCount,
+                    timeSpent: startTime ? Date.now() - startTime : 0,
+                    currentLength: textarea.value.length
+                });
+            }
+        });
+
+        textarea.addEventListener('blur', () => {
+            if (startTime) {
+                const timeSpent = Date.now() - startTime;
+                trackInteraction('textarea_blur', {
+                    scenario: textarea.id.replace('practice-', ''),
+                    timeSpent: timeSpent,
+                    finalLength: textarea.value.length,
+                    keystrokeCount: keystrokeCount
+                });
+            }
+        });
+    });
+}
+
+// Track tab switches
+function trackTabSwitch(tabName) {
+    trackInteraction('tab_switch', {
+        tab: tabName,
+        timestamp: new Date().toISOString()
+    });
+}
+
+// Track copy button clicks
+function setupCopyTracking() {
+    document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('copy-btn')) {
+            const scriptCard = e.target.closest('.script-card');
+            const scriptLabel = scriptCard ? scriptCard.querySelector('.script-label')?.textContent : 'Unknown';
+            trackInteraction('script_copied', {
+                script: scriptLabel,
+                timestamp: new Date().toISOString()
+            });
+        }
+    });
+}
+
+// Track page views and time on page
+function setupPageTracking() {
+    trackInteraction('page_view', {
+        page: window.location.pathname,
+        referrer: document.referrer,
+        timestamp: new Date().toISOString()
+    });
+
+    // Track time on page (every 30 seconds)
+    setInterval(() => {
+        trackInteraction('time_on_page', {
+            seconds: Math.floor((Date.now() - window.pageLoadTime) / 1000)
+        });
+    }, 30000);
+
+    window.pageLoadTime = Date.now();
 }
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
+    // Track page load
+    setupPageTracking();
+    setupTextTracking();
+    setupCopyTracking();
+    
     // Ensure first tab is active
     const firstTab = document.querySelector('.tab-content.active');
     const firstButton = document.querySelector('.nav-tab.active');

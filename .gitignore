@@ -17,3 +17,12 @@ npm-debug.log*
 # Temporary files
 *.tmp
 *.temp
+
+# Private deployment links
+DEPLOYMENT_LINKS.md
+
+# Tracking documentation
+TRACKING_GUIDE.md
+
+# Local Netlify folder
+.netlify

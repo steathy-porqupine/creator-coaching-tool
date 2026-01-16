@@ -47,13 +47,19 @@
                     </div>
                 </div>
 
-                <div class="practice-question">
-                    <h4>Now YOU try:</h4>
-                    <p>A new follower just liked 3 of your recent posts. Draft your response:</p>
-                    <textarea id="practice-1" placeholder="Type your message here..." aria-label="Practice message input"></textarea>
-                    <button class="btn btn-primary" onclick="checkPractice(1)">Get Feedback</button>
-                    <div id="feedback-1" class="feedback" role="status" aria-live="polite"></div>
-                </div>
+                <form name="practice-scenario-1" netlify netlify-honeypot="bot-field" data-netlify="true" class="form-wrapper">
+                    <input type="hidden" name="form-name" value="practice-scenario-1">
+                    <input type="hidden" name="scenario-number" value="1">
+                    <input type="hidden" name="scenario-title" value="New Follower Engagement">
+                    <input type="hidden" name="bot-field">
+                    <div class="practice-question">
+                        <h4>Now YOU try:</h4>
+                        <p>A new follower just liked 3 of your recent posts. Draft your response:</p>
+                        <textarea name="practice-response" id="practice-1" placeholder="Type your message here..." aria-label="Practice message input"></textarea>
+                        <button type="button" class="btn btn-primary" onclick="checkPractice(1)">Get Feedback</button>
+                        <div id="feedback-1" class="feedback" role="status" aria-live="polite"></div>
+                    </div>
+                </form>
             </div>
 
             <div class="card">
@@ -73,13 +79,19 @@
                     </div>
                 </div>
 
-                <div class="practice-question">
-                    <h4>Now YOU try:</h4>
-                    <p>Someone asks: "What makes your page worth the price?" Draft a response:</p>
-                    <textarea id="practice-2" placeholder="Type your message here..." aria-label="Practice message input"></textarea>
-                    <button class="btn btn-primary" onclick="checkPractice(2)">Get Feedback</button>
-                    <div id="feedback-2" class="feedback" role="status" aria-live="polite"></div>
-                </div>
+                <form name="practice-scenario-2" netlify netlify-honeypot="bot-field" data-netlify="true" class="form-wrapper">
+                    <input type="hidden" name="form-name" value="practice-scenario-2">
+                    <input type="hidden" name="scenario-number" value="2">
+                    <input type="hidden" name="scenario-title" value="What Do You Post">
+                    <input type="hidden" name="bot-field">
+                    <div class="practice-question">
+                        <h4>Now YOU try:</h4>
+                        <p>Someone asks: "What makes your page worth the price?" Draft a response:</p>
+                        <textarea name="practice-response" id="practice-2" placeholder="Type your message here..." aria-label="Practice message input"></textarea>
+                        <button type="button" class="btn btn-primary" onclick="checkPractice(2)">Get Feedback</button>
+                        <div id="feedback-2" class="feedback" role="status" aria-live="polite"></div>
+                    </div>
+                </form>
             </div>
 
             <div class="card">
@@ -99,13 +111,19 @@
                     </div>
                 </div>
 
-                <div class="practice-question">
-                    <h4>Now YOU try:</h4>
-                    <p>A fan says "I want to sub but can't right now." How do you respond?</p>
-                    <textarea id="practice-3" placeholder="Type your message here..." aria-label="Practice message input"></textarea>
-                    <button class="btn btn-primary" onclick="checkPractice(3)">Get Feedback</button>
-                    <div id="feedback-3" class="feedback" role="status" aria-live="polite"></div>
-                </div>
+                <form name="practice-scenario-3" netlify netlify-honeypot="bot-field" data-netlify="true" class="form-wrapper">
+                    <input type="hidden" name="form-name" value="practice-scenario-3">
+                    <input type="hidden" name="scenario-number" value="3">
+                    <input type="hidden" name="scenario-title" value="Price Objection">
+                    <input type="hidden" name="bot-field">
+                    <div class="practice-question">
+                        <h4>Now YOU try:</h4>
+                        <p>A fan says "I want to sub but can't right now." How do you respond?</p>
+                        <textarea name="practice-response" id="practice-3" placeholder="Type your message here..." aria-label="Practice message input"></textarea>
+                        <button type="button" class="btn btn-primary" onclick="checkPractice(3)">Get Feedback</button>
+                        <div id="feedback-3" class="feedback" role="status" aria-live="polite"></div>
+                    </div>
+                </form>
             </div>
 
             <div class="card">
@@ -125,13 +143,19 @@
                     </div>
                 </div>
 
-                <div class="practice-question">
-                    <h4>Now YOU try:</h4>
-                    <p>Someone tips you $30. Write your thank-you response:</p>
-                    <textarea id="practice-4" placeholder="Type your message here..." aria-label="Practice message input"></textarea>
-                    <button class="btn btn-primary" onclick="checkPractice(4)">Get Feedback</button>
-                    <div id="feedback-4" class="feedback" role="status" aria-live="polite"></div>
-                </div>
+                <form name="practice-scenario-4" netlify netlify-honeypot="bot-field" data-netlify="true" class="form-wrapper">
+                    <input type="hidden" name="form-name" value="practice-scenario-4">
+                    <input type="hidden" name="scenario-number" value="4">
+                    <input type="hidden" name="scenario-title" value="After a Purchase">
+                    <input type="hidden" name="bot-field">
+                    <div class="practice-question">
+                        <h4>Now YOU try:</h4>
+                        <p>Someone tips you $30. Write your thank-you response:</p>
+                        <textarea name="practice-response" id="practice-4" placeholder="Type your message here..." aria-label="Practice message input"></textarea>
+                        <button type="button" class="btn btn-primary" onclick="checkPractice(4)">Get Feedback</button>
+                        <div id="feedback-4" class="feedback" role="status" aria-live="polite"></div>
+                    </div>
+                </form>
             </div>
 
             <div class="card">
@@ -151,13 +175,19 @@
                     </div>
                 </div>
 
-                <div class="practice-question">
-                    <h4>Now YOU try:</h4>
-                    <p>A loyal fan likes your posts consistently. How do you bring up customs?</p>
-                    <textarea id="practice-5" placeholder="Type your message here..." aria-label="Practice message input"></textarea>
-                    <button class="btn btn-primary" onclick="checkPractice(5)">Get Feedback</button>
-                    <div id="feedback-5" class="feedback" role="status" aria-live="polite"></div>
-                </div>
+                <form name="practice-scenario-5" netlify netlify-honeypot="bot-field" data-netlify="true" class="form-wrapper">
+                    <input type="hidden" name="form-name" value="practice-scenario-5">
+                    <input type="hidden" name="scenario-number" value="5">
+                    <input type="hidden" name="scenario-title" value="Offering Customs">
+                    <input type="hidden" name="bot-field">
+                    <div class="practice-question">
+                        <h4>Now YOU try:</h4>
+                        <p>A loyal fan likes your posts consistently. How do you bring up customs?</p>
+                        <textarea name="practice-response" id="practice-5" placeholder="Type your message here..." aria-label="Practice message input"></textarea>
+                        <button type="button" class="btn btn-primary" onclick="checkPractice(5)">Get Feedback</button>
+                        <div id="feedback-5" class="feedback" role="status" aria-live="polite"></div>
+                    </div>
+                </form>
             </div>
         </div>
 

@@ -544,6 +544,11 @@ textarea:focus {
     line-height: 1.8;
 }
 
+/* Form wrapper for Netlify forms */
+.form-wrapper {
+    display: contents;
+}
+
 /* Quick stat */
 .quick-stat {
     text-align: center;
