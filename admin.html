@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tracking Data Admin - Creator Coaching Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f3f4f6;
+            padding: 20px;
+            color: #1f2937;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #7c3aed;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #6b7280;
+            margin-bottom: 30px;
+        }
+        .summary {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .summary h2 {
+            color: #374151;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+        .summary-label {
+            font-weight: 600;
+            color: #6b7280;
+        }
+        .summary-value {
+            color: #1f2937;
+        }
+        .events-list {
+            margin-top: 20px;
+        }
+        .events-list h3 {
+            color: #374151;
+            margin-bottom: 15px;
+        }
+        .event-type {
+            display: inline-block;
+            background: #7c3aed;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            margin: 5px 5px 5px 0;
+        }
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background: #7c3aed;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #6d28d9;
+        }
+        .btn-secondary {
+            background: #06b6d4;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #0891b2;
+        }
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+        .btn-success:hover {
+            background: #059669;
+        }
+        .warning {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #92400e;
+        }
+        .data-preview {
+            background: #1f2937;
+            color: #f9fafb;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Tracking Data Admin</h1>
+        <p class="subtitle">View and export all tracked user interactions</p>
+        
+        <div class="warning">
+            <strong>⚠️ Admin Access:</strong> This page is for viewing tracking data. Make sure to keep this URL private.
+        </div>
+        
+        <div class="summary" id="summary">
+            <h2>📈 Summary</h2>
+            <div id="summary-content">
+                <p>Loading summary...</p>
+            </div>
+        </div>
+        
+        <div class="button-group">
+            <button class="btn btn-primary" onclick="exportData('json')">📥 Export as JSON</button>
+            <button class="btn btn-secondary" onclick="exportData('csv')">📥 Export as CSV</button>
+            <button class="btn btn-success" onclick="refreshSummary()">🔄 Refresh Data</button>
+            <button class="btn btn-secondary" onclick="clearData()">🗑️ Clear Stored Data</button>
+        </div>
+        
+        <div class="data-preview" id="data-preview">
+            <p>Click "Refresh Data" to view tracking data preview</p>
+        </div>
+    </div>
+    
+    <script>
+        // Load tracking functions from main site
+        function loadTrackingFunctions() {
+            // These functions should be available if loaded from main site
+            // For standalone use, we'll implement them here
+            if (typeof exportTrackingData === 'undefined') {
+                window.exportTrackingData = function(format) {
+                    try {
+                        const stored = localStorage.getItem('trackingData');
+                        const storedData = stored ? JSON.parse(stored) : [];
+                        
+                        if (storedData.length === 0) {
+                            alert('No tracking data found. Data is stored per browser. Make sure you\'re accessing this from the same browser where users interacted with the site.');
+                            return 0;
+                        }
+                        
+                        let content, filename, mimeType;
+                        
+                        if (format === 'csv') {
+                            const headers = ['Timestamp', 'Event Type', 'Data', 'URL', 'User Agent'];
+                            const rows = storedData.map(event => [
+                                event.timestamp,
+                                event.type,
+                                JSON.stringify(event.data),
+                                event.url,
+                                event.userAgent
+                            ]);
+                            
+                            content = [
+                                headers.join(','),
+                                ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+                            ].join('\n');
+                            
+                            filename = `tracking-data-${new Date().toISOString().split('T')[0]}.csv`;
+                            mimeType = 'text/csv';
+                        } else {
+                            content = JSON.stringify(storedData, null, 2);
+                            filename = `tracking-data-${new Date().toISOString().split('T')[0]}.json`;
+                            mimeType = 'application/json';
+                        }
+                        
+                        const blob = new Blob([content], { type: mimeType });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = filename;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                        
+                        return storedData.length;
+                    } catch (e) {
+                        console.error('Error:', e);
+                        alert('Error exporting data: ' + e.message);
+                        return 0;
+                    }
+                };
+            }
+            
+            if (typeof getTrackingSummary === 'undefined') {
+                window.getTrackingSummary = function() {
+                    try {
+                        const stored = localStorage.getItem('trackingData');
+                        const storedData = stored ? JSON.parse(stored) : [];
+                        
+                        const summary = {
+                            totalEvents: storedData.length,
+                            eventsByType: {},
+                            firstEvent: storedData.length > 0 ? storedData[0].timestamp : null,
+                            lastEvent: storedData.length > 0 ? storedData[storedData.length - 1].timestamp : null,
+                            lastUpdate: localStorage.getItem('trackingDataLastUpdate')
+                        };
+                        
+                        storedData.forEach(event => {
+                            summary.eventsByType[event.type] = (summary.eventsByType[event.type] || 0) + 1;
+                        });
+                        
+                        return summary;
+                    } catch (e) {
+                        return { error: 'Could not load tracking data: ' + e.message };
+                    }
+                };
+            }
+        }
+        
+        function refreshSummary() {
+            loadTrackingFunctions();
+            const summary = getTrackingSummary();
+            
+            if (summary.error) {
+                document.getElementById('summary-content').innerHTML = `<p style="color: #ef4444;">${summary.error}</p>`;
+                return;
+            }
+            
+            let html = '';
+            html += `<div class="summary-item"><span class="summary-label">Total Events:</span><span class="summary-value">${summary.totalEvents}</span></div>`;
+            html += `<div class="summary-item"><span class="summary-label">First Event:</span><span class="summary-value">${summary.firstEvent || 'N/A'}</span></div>`;
+            html += `<div class="summary-item"><span class="summary-label">Last Event:</span><span class="summary-value">${summary.lastEvent || 'N/A'}</span></div>`;
+            html += `<div class="summary-item"><span class="summary-label">Last Update:</span><span class="summary-value">${summary.lastUpdate || 'N/A'}</span></div>`;
+            
+            if (Object.keys(summary.eventsByType).length > 0) {
+                html += '<div class="events-list"><h3>Events by Type:</h3>';
+                for (const [type, count] of Object.entries(summary.eventsByType)) {
+                    html += `<span class="event-type">${type}: ${count}</span>`;
+                }
+                html += '</div>';
+            }
+            
+            document.getElementById('summary-content').innerHTML = html;
+            
+            // Show data preview
+            try {
+                const stored = localStorage.getItem('trackingData');
+                const storedData = stored ? JSON.parse(stored) : [];
+                document.getElementById('data-preview').textContent = JSON.stringify(storedData.slice(-10), null, 2) + '\n\n... (showing last 10 events, export full data to see all)';
+            } catch (e) {
+                document.getElementById('data-preview').textContent = 'Could not load data preview';
+            }
+        }
+        
+        function exportData(format) {
+            loadTrackingFunctions();
+            const count = exportTrackingData(format);
+            if (count > 0) {
+                alert(`Exported ${count} events as ${format.toUpperCase()}`);
+            }
+        }
+        
+        function clearData() {
+            if (confirm('Are you sure you want to clear all stored tracking data? This cannot be undone.')) {
+                localStorage.removeItem('trackingData');
+                localStorage.removeItem('trackingDataLastUpdate');
+                alert('Tracking data cleared.');
+                refreshSummary();
+            }
+        }
+        
+        // Load summary on page load
+        window.addEventListener('DOMContentLoaded', refreshSummary);
+    </script>
+</body>
+</html>

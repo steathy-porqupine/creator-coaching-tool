@@ -81,17 +81,130 @@ function trackInteraction(eventType, data) {
     if (typeof window.trackingData === 'undefined') {
         window.trackingData = [];
     }
-    window.trackingData.push({
+    
+    const event = {
         type: eventType,
         data: data,
         timestamp: new Date().toISOString(),
         url: window.location.href,
         userAgent: navigator.userAgent
-    });
+    };
+    
+    window.trackingData.push(event);
+    
+    // Save to localStorage for persistence (survives page reloads)
+    try {
+        const stored = localStorage.getItem('trackingData');
+        const storedData = stored ? JSON.parse(stored) : [];
+        storedData.push(event);
+        // Keep only last 1000 events to avoid storage limits
+        if (storedData.length > 1000) {
+            storedData.splice(0, storedData.length - 1000);
+        }
+        localStorage.setItem('trackingData', JSON.stringify(storedData));
+        localStorage.setItem('trackingDataLastUpdate', new Date().toISOString());
+    } catch (e) {
+        // Silently handle storage errors
+        console.log('Tracking data saved to memory only');
+    }
     
     // Send to Netlify Analytics if available (silent)
     if (window.netlify && window.netlify.track) {
         window.netlify.track(eventType, data);
+    }
+}
+
+// Export tracking data to file
+function exportTrackingData(format = 'json') {
+    try {
+        // Get data from localStorage (persisted) or memory (current session)
+        const stored = localStorage.getItem('trackingData');
+        const storedData = stored ? JSON.parse(stored) : [];
+        const memoryData = window.trackingData || [];
+        
+        // Combine and deduplicate (prefer stored data, add new memory data)
+        const allData = [...storedData];
+        const storedTimestamps = new Set(storedData.map(e => e.timestamp));
+        memoryData.forEach(event => {
+            if (!storedTimestamps.has(event.timestamp)) {
+                allData.push(event);
+            }
+        });
+        
+        if (allData.length === 0) {
+            alert('No tracking data available yet. Use the site to generate tracking data.');
+            return;
+        }
+        
+        let content, filename, mimeType;
+        
+        if (format === 'csv') {
+            // Convert to CSV
+            const headers = ['Timestamp', 'Event Type', 'Data', 'URL', 'User Agent'];
+            const rows = allData.map(event => [
+                event.timestamp,
+                event.type,
+                JSON.stringify(event.data),
+                event.url,
+                event.userAgent
+            ]);
+            
+            content = [
+                headers.join(','),
+                ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+            ].join('\n');
+            
+            filename = `tracking-data-${new Date().toISOString().split('T')[0]}.csv`;
+            mimeType = 'text/csv';
+        } else {
+            // JSON format
+            content = JSON.stringify(allData, null, 2);
+            filename = `tracking-data-${new Date().toISOString().split('T')[0]}.json`;
+            mimeType = 'application/json';
+        }
+        
+        // Create download
+        const blob = new Blob([content], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        return allData.length;
+    } catch (e) {
+        console.error('Error exporting tracking data:', e);
+        alert('Error exporting data. Check console for details.');
+        return 0;
+    }
+}
+
+// Get tracking data summary
+function getTrackingSummary() {
+    try {
+        const stored = localStorage.getItem('trackingData');
+        const storedData = stored ? JSON.parse(stored) : [];
+        const memoryData = window.trackingData || [];
+        const allData = [...storedData, ...memoryData];
+        
+        const summary = {
+            totalEvents: allData.length,
+            eventsByType: {},
+            firstEvent: allData.length > 0 ? allData[0].timestamp : null,
+            lastEvent: allData.length > 0 ? allData[allData.length - 1].timestamp : null,
+            lastUpdate: localStorage.getItem('trackingDataLastUpdate')
+        };
+        
+        allData.forEach(event => {
+            summary.eventsByType[event.type] = (summary.eventsByType[event.type] || 0) + 1;
+        });
+        
+        return summary;
+    } catch (e) {
+        return { error: 'Could not load tracking data' };
     }
 }
 
@@ -345,4 +458,18 @@ document.addEventListener('DOMContentLoaded', () => {
             tab.setAttribute('aria-selected', tabId === tabName ? 'true' : 'false');
         });
     };
+    
+    // Load tracking data from localStorage on page load
+    try {
+        const stored = localStorage.getItem('trackingData');
+        if (stored) {
+            window.trackingData = JSON.parse(stored);
+        }
+    } catch (e) {
+        // Silently handle errors
+    }
 });
+
+// Make export functions available globally (for console access)
+window.exportTrackingData = exportTrackingData;
+window.getTrackingSummary = getTrackingSummary;
